@@ -24,8 +24,17 @@ fn handle_connection(mut stream: TcpStream) {
 
     let get = b"GET / HTTP/1.1\r\n";
 
-    httpconnection::connection::parse_request(& buffer).expect("unable to parse");
+    let request: httpconnection::connection::Request = match httpconnection::connection::parse_request(& buffer) {
+        Ok(temp) => temp,
+        Err(_) => panic!("unable to parse"),
+    };
 
+      if request.method == httpconnection::connection::Method::GET {
+        println!("method = GET\nresource = {}", *request.resource)
+      }
+      println!("method = ???\nresource = {}", *request.resource)
+
+    
     //let status_line;
     //let filename;
 
