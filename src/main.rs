@@ -22,19 +22,19 @@ fn handle_connection(mut stream: TcpStream) {
     stream.read(&mut buffer).unwrap();
     println!("Request: {}", String::from_utf8_lossy(&buffer[..]));
 
-    let get = b"GET / HTTP/1.1\r\n";
-
     let request: httpconnection::connection::Request = match httpconnection::connection::parse_request(& buffer) {
         Ok(temp) => temp,
         Err(_) => panic!("unable to parse"),
     };
 
-      if request.method == httpconnection::connection::Method::GET {
-        println!("method = GET\nresource = {}", *request.resource)
-      }
-      println!("method = ???\nresource = {}", *request.resource)
+    if request.method == httpconnection::connection::Method::GET {
+      println!("method = GET\nresource = {}", *request.resource)
+    }
+    else {
+     println!("method = ???\nresource = {}", *request.resource)
+    }
 
-    
+    httpconnection::connection::send_data(&request, stream);
     //let status_line;
     //let filename;
 

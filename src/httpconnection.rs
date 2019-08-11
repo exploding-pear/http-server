@@ -1,8 +1,12 @@
 pub mod connection {
   use std::io::{Error, ErrorKind};
+  use std::net::TcpStream;
+  use std::net::TcpListener;
   use std::string::String;
   use std::boxed::Box;
   use std::fmt;
+  use std::fs;
+  use std::io::Write;
 
   #[derive(PartialEq)]
   pub enum Method {
@@ -64,12 +68,32 @@ pub mod connection {
                   (*file).push_str(itr);
                }
         },
-        _ => println!("next value"),
+        //_ => println!("next value"),
+        _ => break,
       }
       counter += 1;
     }
     Ok(Request::new(m, file))
   }
-  fn get_resource() {}
-  fn send_data() {}
+  pub fn send_data(r: &Request, mut stream: TcpStream) {
+    let status_line;
+    let mut filename = String::new();
+
+    //GET Request
+    if r.method == Method::GET {
+        status_line = "HTTP/1.1 200 OK\r\n\r\n"; 
+        filename.push_str(&*r.resource);
+    }
+    //all other requests
+    else {
+      status_line = "HTTP/1.1 404 NOT FOUND\r\n\r\n";
+      filename.push_str("404.html");
+    }
+
+    //stringify file and send over network
+    let contents = fs::read_to_string(filename).unwrap();
+    let response = format!("{}{}", status_line, contents);
+    stream.write(response.as_bytes()).unwrap();
+    stream.flush().unwrap();
+  }
 }
