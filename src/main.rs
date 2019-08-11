@@ -35,25 +35,4 @@ fn handle_connection(mut stream: TcpStream) {
     }
 
     httpconnection::connection::send_data(&request, stream);
-    //let status_line;
-    //let filename;
-
-    //parse_request(& buffer);
-
-    /*GET Request
-    if buffer.starts_with(get) {
-        status_line = "HTTP/1.1 200 OK\r\n\r\n"; 
-        filename = "/home/alex/.bashrc";
-    }
-    else {
-      status_line = "HTTP/1.1 404 NOT FOUND\r\n\r\n";
-      filename = "404.html";
-    }
-
-    //stringify file and send over network
-    let contents = fs::read_to_string(filename).unwrap();
-    let response = format!("{}{}", status_line, contents);
-    stream.write(response.as_bytes()).unwrap();
-    stream.flush().unwrap();
-    */
 }
