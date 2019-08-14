@@ -22,7 +22,8 @@ fn handle_connection(mut stream: TcpStream) {
     stream.read(&mut buffer).unwrap();
     println!("Request: {}", String::from_utf8_lossy(&buffer[..]));
 
-    let request: httpconnection::connection::Request = match httpconnection::connection::parse_request(& buffer) {
+    let request: httpconnection::connection::Request = 
+        match httpconnection::connection::parse_request(& buffer) {
         Ok(temp) => temp,
         Err(_) => panic!("unable to parse"),
     };

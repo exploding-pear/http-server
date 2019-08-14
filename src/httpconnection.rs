@@ -42,8 +42,9 @@ pub mod connection {
     //let request = Request{};
     let mut counter = 0;
     let bad_method = Error::new(ErrorKind::InvalidData, "invalid method type");
+    let bad_path = Error::new(ErrorKind::InvalidData, "you cannot go above current directory");
     let mut m = Method::INVALID;
-    let mut file = Box::new(String::from("index.html"));
+    let mut file = Box::new(String::new());
 
     println!("serve_file: {} ", String::from_utf8_lossy(&buffer));
     for itr in String::from_utf8_lossy(&buffer[..]).split_whitespace() {
@@ -63,10 +64,17 @@ pub mod connection {
         },
         1 => {
                println!("file wanted: {:?}", itr);
-               if itr != "/" {
-                  (*file).clear();
+               if itr.contains("..") {
+                   return Err(bad_path)
+               }
+               else if itr != "/" {
+                  (*file).push_str("htdocs");
                   (*file).push_str(itr);
                }
+               else {
+                 (*file).push_str("htdocs/index.html");
+               }
+               println!("file to grab = {}", (*file));
         },
         //_ => println!("next value"),
         _ => break,
@@ -91,7 +99,11 @@ pub mod connection {
     }
 
     //stringify file and send over network
-    let contents = fs::read_to_string(filename).unwrap();
+    let contents = match fs::read_to_string(filename) {
+        Ok(file) => file,
+        Err(err) => fs::read_to_string("404.html").unwrap()
+    };
+
     let response = format!("{}{}", status_line, contents);
     stream.write(response.as_bytes()).unwrap();
     stream.flush().unwrap();
