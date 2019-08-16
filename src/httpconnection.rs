@@ -81,6 +81,8 @@ pub mod connection {
     let contents: String;
     let status_line;
     let mut filename = String::new();
+//    let metadata: fs::metadata;
+//    let metadata;
 
     //GET Request
     if r.method == Method::GET || r.method == Method::POST {
@@ -93,22 +95,29 @@ pub mod connection {
       filename.push_str("404.html");
     }
 
-    //run file through php interpreter
-    if filename.ends_with(".html") || filename.ends_with(".php") {
-      let output = Command::new("php")
-                          .arg(filename)
-                          .output()
-                          .expect("failed to execute process");
+    let metadata = match fs::metadata(&filename) {
+      Ok(_) => {
+        //run file through php interpreter
+        if filename.ends_with(".html") || filename.ends_with(".php") {
+          let output = Command::new("php")
+                            .arg(filename)
+                            .output()
+                            .expect("failed to execute process");
 
-      contents = String::from_utf8_lossy(&output.stdout).to_string();
-    }
-    else {
-      //stringify file and send over network
-      contents = match fs::read_to_string(filename) {
-          Ok(fstr) => fstr,
-          Err(err) => fs::read_to_string("404.html").unwrap(),
-      };
-    }
+          contents = String::from_utf8_lossy(&output.stdout).to_string();
+        }
+        else {
+          //stringify file and send over network
+          contents = match fs::read_to_string(filename) {
+            Ok(fstr) => fstr,
+            Err(err) => fs::read_to_string("500.html").unwrap(),
+          };
+        }
+      },
+      Err(_) => {
+        contents = fs::read_to_string("404.html").unwrap();
+      }
+    };
 
     let response = format!("{}{}", status_line, contents);
     stream.write(response.as_bytes()).unwrap();
