@@ -44,8 +44,12 @@ pub mod connection {
         //method type
         0 => {
                if itr == "GET" {
-                 println!("CORRECT!, you entered: {}", itr);
+                 println!("CORRECT! you entered: {}", itr);
                  m = Method::GET;
+               }
+               else if itr == "POST" {
+                 println!("CORRECT! you entered: {}", itr);
+                 m = Method::POST;
                }
                else {
                  println!("Incorrect!, you entered: {}", itr);
@@ -79,7 +83,7 @@ pub mod connection {
     let mut filename = String::new();
 
     //GET Request
-    if r.method == Method::GET {
+    if r.method == Method::GET || r.method == Method::POST {
         status_line = "HTTP/1.1 200 OK\r\n\r\n"; 
         filename.push_str(&*r.resource);
     }
