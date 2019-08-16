@@ -28,17 +28,6 @@ pub mod connection {
     }
   }
 
-  /*
-  impl fmt::Display for Request {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-      if self.method == Method::GET {
-        write!("method = GET\nresource = {}", *self.resource)
-      }
-      write!("method = ???\nresource = {}", *self.resource)
-    }
-  }
-  */
-
   pub fn parse_request (buffer: & [u8]) -> Result<Request, Error> {
     //let request = Request{};
     let mut counter = 0;
