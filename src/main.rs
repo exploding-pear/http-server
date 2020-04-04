@@ -28,6 +28,8 @@ fn handle_connection(mut stream: TcpStream) {
         Err(_) => panic!("unable to parse"),
     };
 
+    println!("request: {:?}", (*request.resource));
+
     if request.method == httpconnection::connection::Method::GET {
       println!("method = GET\nresource = {}", *request.resource)
     }

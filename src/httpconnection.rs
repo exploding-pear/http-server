@@ -7,7 +7,8 @@ pub mod connection {
   use std::fmt;
   use std::fs;
   use std::io::Write;
-  use std::process::Command;
+  use std::env;
+  use std::path::Path;
 
   #[derive(PartialEq)]
   pub enum Method {
@@ -35,7 +36,15 @@ pub mod connection {
     let bad_path = Error::new(ErrorKind::InvalidData, "you cannot go above current directory");
     let mut m = Method::INVALID;
     let mut file = Box::new(String::new());
-
+    let root_path_var = "SERVER_ROOT_PATH";
+    let root_path_val: String;
+    match env::var(root_path_var) {
+      Ok(val) => {
+                    println!("{}: {:?}", root_path_var, val);
+                    root_path_val = val;
+      },
+      Err(e) => panic!("couldn't interpret {}: {}", root_path_var, e),
+    };
     //this block of code is tokenizing the HTTP request and running code based on
     //which part of the request it is on i.e. token 0 is the method type (GET, POST)
     //token 1 is the resource requested (file), etc.
@@ -65,11 +74,12 @@ pub mod connection {
                    return Err(bad_path)
                }
                else if itr != "/" {
-                  (*file).push_str("htdocs");
+                  (*file).push_str(&root_path_val);
                   (*file).push_str(itr);
                }
                else {
-                 (*file).push_str("htdocs/index.html");
+                 (*file).push_str(&root_path_val);
+                 (*file).push_str("/index.html")
                }
                println!("file to grab = {}", (*file));
         },
@@ -78,49 +88,36 @@ pub mod connection {
       }
       counter += 1;
     }
+    println!("returning: {}", (*file));
     Ok(Request::new(m, file))
   }
   pub fn send_data(r: &Request, mut stream: TcpStream) {
     let contents: String;
     let status_line;
     let mut filename = String::new();
+    //let string = String::from()
 //    let metadata: fs::metadata;
 //    let metadata;
 
-    //GET Request
-    if r.method == Method::GET || r.method == Method::POST {
+    if Path::new(&*r.resource).exists() {
         status_line = "HTTP/1.1 200 OK\r\n\r\n"; 
-        filename.push_str(&*r.resource);
+        filename.push_str(&r.resource);
+        println!("filename: {}",(r.resource))
     }
+
     //all other requests
     else {
       status_line = "HTTP/1.1 404 NOT FOUND\r\n\r\n";
       filename.push_str("404.html");
     }
 
-    let metadata = match fs::metadata(&filename) {
-      Ok(_) => {
-        //run file through php interpreter
-        if filename.ends_with(".html") || filename.ends_with(".php") {
-          let output = Command::new("php")
-                            .arg(filename)
-                            .output()
-                            .expect("failed to execute process");
-
-          contents = String::from_utf8_lossy(&output.stdout).to_string();
-        }
-        else {
-          //stringify file and send over network
-          contents = match fs::read_to_string(filename) {
-            Ok(fstr) => fstr,
-            Err(err) => fs::read_to_string("500.html").unwrap(),
-          };
-        }
-      },
-      Err(_) => {
-        contents = fs::read_to_string("404.html").unwrap();
-      }
+    
+    //stringify file and send over network
+    contents = match fs::read_to_string(filename) {
+      Ok(fstr) => fstr,
+      Err(err) => fs::read_to_string("500.html").unwrap(),
     };
+
 
     let response = format!("{}{}", status_line, contents);
     stream.write(response.as_bytes()).unwrap();
