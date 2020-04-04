@@ -1,10 +1,8 @@
 pub mod connection {
   use std::io::{Error, ErrorKind};
   use std::net::TcpStream;
-  use std::net::TcpListener;
   use std::string::String;
   use std::boxed::Box;
-  use std::fmt;
   use std::fs;
   use std::io::Write;
   use std::env;
@@ -95,6 +93,15 @@ pub mod connection {
     let contents: String;
     let status_line;
     let mut filename = String::new();
+    let root_path_var = "SERVER_ROOT_PATH";
+    let root_path_val: String;
+    match env::var(root_path_var) {
+      Ok(val) => {
+                    println!("{}: {:?}", root_path_var, val);
+                    root_path_val = val;
+      },
+      Err(e) => panic!("couldn't interpret {}: {}", root_path_var, e),
+    };
     //let string = String::from()
 //    let metadata: fs::metadata;
 //    let metadata;
@@ -108,14 +115,15 @@ pub mod connection {
     //all other requests
     else {
       status_line = "HTTP/1.1 404 NOT FOUND\r\n\r\n";
-      filename.push_str("404.html");
+      filename.push_str(&root_path_val);
+      filename.push_str("/404.html");
     }
 
     
     //stringify file and send over network
     contents = match fs::read_to_string(filename) {
       Ok(fstr) => fstr,
-      Err(err) => fs::read_to_string("500.html").unwrap(),
+      Err(_) => panic!("unable to read file to string"),
     };
 
 
