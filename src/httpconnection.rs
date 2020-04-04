@@ -36,6 +36,9 @@ pub mod connection {
     let mut m = Method::INVALID;
     let mut file = Box::new(String::new());
 
+    //this block of code is tokenizing the HTTP request and running code based on
+    //which part of the request it is on i.e. token 0 is the method type (GET, POST)
+    //token 1 is the resource requested (file), etc.
     println!("serve_file: {} ", String::from_utf8_lossy(&buffer));
     for itr in String::from_utf8_lossy(&buffer[..]).split_whitespace() {
       println!("{}, ", itr);

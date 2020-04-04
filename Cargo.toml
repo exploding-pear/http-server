@@ -1,0 +1,5 @@
+[package]
+name = "http-server"
+version = "0.1.0"
+authors = ["exploding-pear"]
+edition = "2018"
